@@ -1,0 +1,11 @@
+[package]
+name = "nextclade_to_maple"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+argparse = "0.2.2"
+csv = "1.3.0"
+serde = "1.0.210"
+unbounded-interval-tree = "1.1.2"
+unwrap = "1.2.1"
