@@ -1,6 +1,6 @@
 use std::process;
 
-use argparse::{ArgumentParser, Store};
+use argparse::{ArgumentParser, Store, StoreTrue};
 
 use nextclade_to_maple::{Config, nextclade_to_maple};
 
@@ -12,6 +12,7 @@ fn parse_args() -> Config {
     let mut min_real = 0;
     let mut ref_len = 0;
     let mut rename_or_prune_file = String::new();
+    let mut version = false;
     {
         let mut ap = ArgumentParser::new();
         ap.set_description("Convert Nextclade TSV to MAPLE format");
@@ -36,6 +37,9 @@ fn parse_args() -> Config {
         ap.refer(&mut mask_bed_file)
             .add_option(&["--mask_bed"], Store,
                         "Path to a BED file (3-6 columns) with regions to mask, i.e. positions will be excluded from the output.");
+        ap.refer(&mut version)
+            .add_option(&["--version"], StoreTrue,
+                        "Print version and exit");
         ap.parse_args_or_exit();
     }
 
@@ -47,6 +51,7 @@ fn parse_args() -> Config {
         min_real,
         ref_len,
         rename_or_prune_file,
+        version,
     }
 }
 

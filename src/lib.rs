@@ -16,6 +16,7 @@ pub struct Config {
     pub min_real: usize,
     pub ref_len: usize,
     pub rename_or_prune_file: String,
+    pub version: bool,
 }
 
 impl Default for Config {
@@ -28,6 +29,7 @@ impl Default for Config {
             min_real: 0,
             ref_len: 0,
             rename_or_prune_file: String::new(),
+            version: false,
         }
     }
 }
@@ -329,6 +331,10 @@ fn nextclade_to_maple_one_row(row: &HashMap<String, String>, rename_hash: &Optio
 }
 
 pub fn nextclade_to_maple(config: Config) -> Result<(), Box<dyn Error>> {
+    if config.version {
+        println!("nextclade_to_maple v{}", env!("CARGO_PKG_VERSION"));
+        return Ok(());
+    }
     // Open the nextclade TSV file, or stdin if no file is provided
     let stream_in:Box<dyn io::Read> = if !config.nextclade_file.is_empty() {
         Box::new(fs::File::open(config.nextclade_file)?)
