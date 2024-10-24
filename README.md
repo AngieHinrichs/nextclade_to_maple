@@ -38,5 +38,5 @@ Optional arguments:
 
 ## License
 
-`nextclade` is distributed under the terms of the [MIT](https://opensource.org/license/mit) license.
+`nextclade_to_maple` is distributed under the terms of the [MIT](https://opensource.org/license/mit) license.
 
