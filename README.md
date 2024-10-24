@@ -3,7 +3,7 @@
 
 ## Installation
 
-TODO (download artifact from release)
+TODO For now, go to https://github.com/AngieHinrichs/nextclade_to_maple/releases/ and click to download the package for your OS and architecture.  That will download a .zip file to your machine; unzip that to get the nextclade_to_maple executable.
 
 ## Usage
 
