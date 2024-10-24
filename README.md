@@ -3,11 +3,15 @@
 
 ## Installation
 
-TODO For now, go to https://github.com/AngieHinrichs/nextclade_to_maple/releases/ and click to download the package for your OS and architecture.  That will download a .zip file to your machine; unzip that to get the nextclade_to_maple executable.
+For now, go to https://github.com/AngieHinrichs/nextclade_to_maple/releases/ and click to download the package for your OS and architecture.
+For example, if you are on a Linux machine and `uname -m` says `x86_64`, then download nextclade_to_maple-x86_64-unknown-linux-gnu.
+That will download the file nextclade_to_maple-x86_64-unknown-linux-gnu.zip to your machine; unzip that to get the nextclade_to_maple executable.
+
+If you would prefer to install through conda, docker or some other means, then please [file an issue](https://github.com/AngieHinrichs/nextclade_to_maple/issues/new/choose) to let me know!
 
 ## Usage
 
-By default this will act as a pipe from stdin to stdout, converting the TSV output of [nextclade](https:://clades.nextstrain.org/) to the input format expected by [MAPLE](https://github.com/NicolaDM/MAPLE) which is also an input format for [UShER](https://github.com/yatisht/UShER).
+By default nextclade_to_maple operates as a pipe from stdin to stdout, converting the TSV output of [nextclade](https:://clades.nextstrain.org/) to the input format expected by [MAPLE](https://github.com/NicolaDM/MAPLE) which is also an input format for [UShER](https://github.com/yatisht/UShER).
 
 Run `nextclade_to_maple --help` to see descriptions of command line options:
 
