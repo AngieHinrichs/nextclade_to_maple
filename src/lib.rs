@@ -332,9 +332,9 @@ pub fn nextclade_to_maple(config: Config) -> Result<(), Box<dyn Error>> {
                     .from_reader(stream_in);
 
     let mut stream_out:Box<dyn io::Write> = if !config.maple_file.is_empty() {
-        Box::new(fs::File::create(config.maple_file)?)
+        Box::new(io::BufWriter::new(fs::File::create(config.maple_file)?))
     } else {
-        Box::new(io::stdout())
+        Box::new(io::BufWriter::new(io::stdout()))
     };
 
     let rename_hash = maybe_hash_from_two_column_file(&config.rename_or_prune_file);
