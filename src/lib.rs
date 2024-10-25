@@ -8,6 +8,7 @@ use csv::ReaderBuilder;
 use std::ops::Bound::{Included, Excluded};
 use unbounded_interval_tree::interval_tree::IntervalTree;
 
+#[derive(Default)]
 pub struct Config {
     pub nextclade_file: String,
     pub maple_file: String,
@@ -17,21 +18,6 @@ pub struct Config {
     pub ref_len: usize,
     pub rename_or_prune_file: String,
     pub version: bool,
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        Config {
-            nextclade_file: String::new(),
-            maple_file: String::new(),
-            mask_bed_file: String::new(),
-            max_substitutions: 0,
-            min_real: 0,
-            ref_len: 0,
-            rename_or_prune_file: String::new(),
-            version: false,
-        }
-    }
 }
 
 fn maybe_interval_tree_from_bed_file(path: &str) -> Option<IntervalTree<usize>> {
@@ -90,13 +76,13 @@ fn maybe_lookup_name<'a>(rename_hash:&'a Option<HashMap<String, String>>, name_i
     name_out
 }
 
-fn get_column<'a, 'b>(row:&'a HashMap<String, String>, column:&'b str) -> &'a str {
+fn get_column<'a>(row:&'a HashMap<String, String>, column:&str) -> &'a str {
     let col = row.get(column);
     let col = unwrap!(col, "Required column {column} not found");
     col
 }
 
-fn get_column_usize<'a, 'b>(row: &'a HashMap<String, String>, column: &'b str) -> usize {
+fn get_column_usize(row: &HashMap<String, String>, column: &str) -> usize {
     let val: Result<usize, _> = get_column(row, column).parse();
     let val = unwrap!(val, "Error parsing {column}: {}", get_column(row, column));
     val
@@ -184,7 +170,7 @@ fn substitutions_to_maple(subs: &str) -> Vec<MapleDiff> {
         maple_diffs.push(MapleDiff {
             t_start: pos - 1,
             length: 1,
-            q_base: q_base,
+            q_base,
         });
     }
     maple_diffs
@@ -259,7 +245,7 @@ fn non_acgtns_to_maple(non_acgtns: &str) -> Vec<MapleDiff> {
             maple_diffs.push(MapleDiff {
                 t_start: start - 1,
                 length: end - start + 1,
-                q_base: q_base,
+                q_base,
             });
         } else {
             let start = parse_usize(positions, "single position in nonACGTNs");
@@ -267,14 +253,14 @@ fn non_acgtns_to_maple(non_acgtns: &str) -> Vec<MapleDiff> {
             maple_diffs.push(MapleDiff {
                 t_start: start - 1,
                 length: 1,
-                q_base: q_base,
+                q_base,
             });
         }
     }
     maple_diffs
 }
 
-fn md_total_bases(missing: &Vec<MapleDiff>) -> usize {
+fn md_total_bases(missing: &[MapleDiff]) -> usize {
     missing.iter().map(|diff| diff.length).sum()
 }
 
@@ -282,7 +268,7 @@ fn nextclade_to_maple_one_row(row: &HashMap<String, String>, rename_hash: &Optio
                               mask_tree: &Option<IntervalTree<usize>>, min_real: usize, max_substitutions: usize,
                               ref_len: usize, stream_out: &mut Box<dyn io::Write>) -> Result<(), Box<dyn Error>> {
     // If alignmentStart is the empty string, then nextclade was not able to align this item; skip it
-    if get_column(row, "alignmentStart") == "" {
+    if get_column(row, "alignmentStart").is_empty() {
         return Ok(());
     }
     // Parse values from row, see if item should be skipped
