@@ -2,6 +2,8 @@ use std::error::Error;
 use std::collections::HashMap;
 use std::{io, fs};
 
+use serde::Deserialize;
+
 use unwrap::unwrap;
 use csv::ReaderBuilder;
 
@@ -74,18 +76,6 @@ fn maybe_lookup_name<'a>(rename_hash:&'a Option<HashMap<String, String>>, name_i
         Some(name_in)
     };
     name_out
-}
-
-fn get_column<'a>(row:&'a HashMap<String, String>, column:&str) -> &'a str {
-    let col = row.get(column);
-    let col = unwrap!(col, "Required column {column} not found");
-    col
-}
-
-fn get_column_usize(row: &HashMap<String, String>, column: &str) -> usize {
-    let val: Result<usize, _> = get_column(row, column).parse();
-    let val = unwrap!(val, "Error parsing {column}: {}", get_column(row, column));
-    val
 }
 
 struct MapleDiff {
@@ -264,32 +254,46 @@ fn md_total_bases(missing: &[MapleDiff]) -> usize {
     missing.iter().map(|diff| diff.length).sum()
 }
 
-fn nextclade_to_maple_one_row(row: &HashMap<String, String>, rename_hash: &Option<HashMap<String, String>>,
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct NextcladeRow {
+    // Only these fields are used, others may be present but are ignored
+    seq_name: String,
+    alignment_start: String,  // empty string if not aligned, otherwise 1-based position
+    alignment_end: String,    // empty string if not aligned, otherwise 1-based position
+    substitutions: String,
+    deletions: String,
+    missing: String,
+    #[serde(rename = "nonACGTNs")]
+    non_acgtns: String,
+}
+
+fn nextclade_to_maple_one_row(row: &NextcladeRow, rename_hash: &Option<HashMap<String, String>>,
                               mask_tree: &Option<IntervalTree<usize>>, min_real: usize, max_substitutions: usize,
                               ref_len: usize, stream_out: &mut Box<dyn io::Write>) -> Result<(), Box<dyn Error>> {
     // If alignmentStart is the empty string, then nextclade was not able to align this item; skip it
-    if get_column(row, "alignmentStart").is_empty() {
+    if row.alignment_start.is_empty() {
         return Ok(());
     }
     // Parse values from row, see if item should be skipped
-    let name = maybe_lookup_name(rename_hash, get_column(row, "seqName"));
+    let name = maybe_lookup_name(rename_hash, &row.seq_name);
     if name.is_none() {
         return Ok(());
     }
     let name = name.unwrap();
-    let alignment_start = get_column_usize(row, "alignmentStart");
-    let alignment_end = get_column_usize(row, "alignmentEnd");
-    let substitutions = substitutions_to_maple(get_column(row, "substitutions"));
+    let alignment_start:usize = row.alignment_start.parse().unwrap();
+    let alignment_end:usize = row.alignment_end.parse().unwrap();
+    let substitutions = substitutions_to_maple(&row.substitutions);
     if max_substitutions > 0 && substitutions.len() > max_substitutions {
         return Ok(());
     }
-    let deletions = deletions_to_maple(get_column(row, "deletions"));
-    let missing = missing_to_maple(get_column(row, "missing"));
+    let deletions = deletions_to_maple(&row.deletions);
+    let missing = missing_to_maple(&row.missing);
     let num_real = alignment_end - alignment_start + 1 - md_total_bases(&missing);
     if num_real < min_real {
         return Ok(());
     }
-    let non_acgtns = non_acgtns_to_maple(get_column(row, "nonACGTNs"));
+    let non_acgtns = non_acgtns_to_maple(&row.non_acgtns);
 
     // Concatenate and sort all diffs
     let mut all_diffs = Vec::new();
@@ -341,7 +345,7 @@ pub fn nextclade_to_maple(config: Config) -> Result<(), Box<dyn Error>> {
     let mask_tree = maybe_interval_tree_from_bed_file(&config.mask_bed_file);
 
     for result in rdr.deserialize() {
-        let row: HashMap<String, String> = result?;
+        let row: NextcladeRow = result?;
         nextclade_to_maple_one_row(&row, &rename_hash, &mask_tree, config.min_real, config.max_substitutions, config.ref_len, &mut stream_out)?;
     }
     Ok(())
