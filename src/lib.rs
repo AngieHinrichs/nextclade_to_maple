@@ -131,9 +131,9 @@ fn print_one_masked(stream_out: &mut Box<dyn io::Write>, t_start: usize, q_base:
     }
 }
 
-fn parse_base(base: Option<char>, description: &str) -> char {
+fn parse_base(base: Option<char>, description: &str, acgt_only:bool) -> char {
     let base = unwrap!(base, "Expected {description}, but got '{:?}'", base);
-    if base != 'A' && base != 'T' && base != 'C' && base != 'G' && base != 'a' && base != 't' && base != 'c' && base != 'g' {
+    if acgt_only && base != 'A' && base != 'T' && base != 'C' && base != 'G' && base != 'a' && base != 't' && base != 'c' && base != 'g' {
         panic!("Expected [ACGT] base {description}, but got '{:?}'", base);
     }
     let base = base.to_lowercase().next();
@@ -154,9 +154,9 @@ fn substitutions_to_maple(subs: &str) -> Vec<MapleDiff> {
         if sub.is_empty() {
             continue;
         }
-        let _ref_base = parse_base(sub.chars().next(), "start of substitution");
+        let _ref_base = parse_base(sub.chars().next(), "start of substitution", false);
         let pos = parse_usize(&sub[1..sub.len()-1], "position between ref and alt bases in substitution");
-        let q_base = parse_base(sub.chars().last(), "end of substitution");
+        let q_base = parse_base(sub.chars().last(), "end of substitution", true);
         maple_diffs.push(MapleDiff {
             t_start: pos - 1,
             length: 1,
