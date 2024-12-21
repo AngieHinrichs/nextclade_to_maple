@@ -250,8 +250,8 @@ fn non_acgtns_to_maple(non_acgtns: &str) -> Vec<MapleDiff> {
     maple_diffs
 }
 
-fn md_total_bases(missing: &[MapleDiff]) -> usize {
-    missing.iter().map(|diff| diff.length).sum()
+fn md_total_bases(md_list: &[MapleDiff]) -> usize {
+    md_list.iter().map(|diff| diff.length).sum()
 }
 
 #[derive(Debug, Deserialize)]
@@ -289,7 +289,7 @@ fn nextclade_to_maple_one_row(row: &NextcladeRow, rename_hash: &Option<HashMap<S
     }
     let deletions = deletions_to_maple(&row.deletions);
     let missing = missing_to_maple(&row.missing);
-    let num_real = alignment_end - alignment_start + 1 - md_total_bases(&missing);
+    let num_real = alignment_end - alignment_start + 1 - md_total_bases(&missing) - md_total_bases(&deletions);
     if num_real < min_real {
         return Ok(());
     }
